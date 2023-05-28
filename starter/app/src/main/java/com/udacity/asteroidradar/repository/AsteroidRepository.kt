@@ -21,7 +21,15 @@ class NasaRepository(private val database: AsteroidDatabase) {
         it.asDomainModel()
     }
 
-    private val _imageOfTheDay = MutableLiveData(ImageOfTheDay("","","","","","","",""))
+    val savedAsteroids : LiveData<List<Asteroid>> = Transformations.map( database.asteroidDatabaseDao.getAllAsteroids()){
+        it.asDomainModel()
+    }
+
+    val todayAsteroids : LiveData<List<Asteroid>> = Transformations.map( database.asteroidDatabaseDao.getTodayAsteroids(getNextSevenDaysFormattedDates()[0])){
+        it.asDomainModel()
+    }
+
+    private val _imageOfTheDay = MutableLiveData(ImageOfTheDay("","",""))
 
     val imageOfTheDay : LiveData<ImageOfTheDay>
         get() = _imageOfTheDay
@@ -43,6 +51,7 @@ class NasaRepository(private val database: AsteroidDatabase) {
                 val response = NasaAPI.nasa.getAsteroids(today, seventhDay, API_KEY)
                 Log.i(APPLICATION_TAG, response)
                 val parsed = parseAsteroidsJsonResult(JSONObject(response))
+                Log.i(APPLICATION_TAG, parsed.toString())
                 database.asteroidDatabaseDao.insertAll(*parsed.asDatabaseModel())
             }
             catch(e: java.lang.Exception){
@@ -50,6 +59,7 @@ class NasaRepository(private val database: AsteroidDatabase) {
             }
         }
     }
+
 
     /**
      * Refresh the image of the day.
@@ -62,7 +72,7 @@ class NasaRepository(private val database: AsteroidDatabase) {
             _imageOfTheDay.value = ImageAPI.imageGetter.getImageOfTheDay(API_KEY)
         }
         catch(e: Exception){
-            Log.e(APPLICATION_TAG, "unable to get image of the day")
+            Log.e(APPLICATION_TAG, e.message!!)
         }
     }
 

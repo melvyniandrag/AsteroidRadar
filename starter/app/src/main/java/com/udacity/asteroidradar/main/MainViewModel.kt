@@ -14,6 +14,9 @@ class MainViewModel(
     private val nasaRepository = NasaRepository(database)
 
     val asteroids = nasaRepository.asteroids
+    val savedAsteroids = nasaRepository.savedAsteroids
+    val todayAsteroids = nasaRepository.todayAsteroids
+
     val imageOfTheDay = nasaRepository.imageOfTheDay
 
 

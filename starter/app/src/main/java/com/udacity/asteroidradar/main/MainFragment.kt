@@ -51,7 +51,7 @@ class MainFragment : Fragment() {
             }
         })
 
-        setHasOptionsMenu(false)
+        setHasOptionsMenu(true)
 
         binding.root.findViewById<RecyclerView>(R.id.asteroid_recycler).apply {
             layoutManager = LinearLayoutManager(context)
@@ -80,7 +80,47 @@ class MainFragment : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    /**
+     * Always return true.
+     * We are not navigating anywhere either.
+     * Just trigger an update to the displayed asteroids
+     *
+     * I dont like this code, but not sure how to make it better.
+     * viewmodel holds three sets of asteroids - todays, all the saved ones, and the week's asteroids.
+     * When you pick an item, stop watching two of them and start watching the appropriate one.
+     * Correction not watch, "observe"
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.show_saved_menu -> {
+                viewModel.asteroids.removeObservers(viewLifecycleOwner)
+                viewModel.todayAsteroids.removeObservers(viewLifecycleOwner)
+                viewModel.savedAsteroids.observe(viewLifecycleOwner, Observer<List<Asteroid>> { savedAsteroids ->
+                    savedAsteroids?.apply {
+                        viewModelAdapter?.asteroids = savedAsteroids
+                    }
+                })
+            }
+            R.id.show_today_menu -> {
+                viewModel.savedAsteroids.removeObservers(viewLifecycleOwner)
+                viewModel.asteroids.removeObservers(viewLifecycleOwner)
+                viewModel.todayAsteroids.observe(viewLifecycleOwner, Observer<List<Asteroid>> { todayAsteroids ->
+                    todayAsteroids?.apply {
+                        viewModelAdapter?.asteroids = todayAsteroids
+                    }
+                })
+
+            }
+            R.id.show_week_menu -> {
+                viewModel.savedAsteroids.removeObservers(viewLifecycleOwner)
+                viewModel.todayAsteroids.removeObservers(viewLifecycleOwner)
+                viewModel.asteroids.observe(viewLifecycleOwner, Observer<List<Asteroid>> { asteroids ->
+                    asteroids?.apply {
+                        viewModelAdapter?.asteroids = asteroids
+                    }
+                })
+            }
+        }
         return true
     }
 }
